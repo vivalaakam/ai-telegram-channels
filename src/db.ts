@@ -1,7 +1,4 @@
 import pg from "pg";
-import { v5 as uuidv5 } from "uuid";
-
-const NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 
 export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -15,19 +12,24 @@ export async function initDb() {
     );
 
     CREATE TABLE IF NOT EXISTS messages (
-      id UUID PRIMARY KEY,
       channel_id BIGINT NOT NULL REFERENCES channels(id),
       message_id BIGINT NOT NULL,
       date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      edit_date TIMESTAMPTZ,
+      effect_id TEXT,
+      is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+      sender_id JSONB,
+      reply_to JSONB,
       content JSONB,
+      content_text JSONB,
+      content_caption JSONB,
+      content_photo JSONB,
+      content_video JSONB,
       raw JSONB NOT NULL,
       created_at TIMESTAMPTZ DEFAULT NOW(),
-      UNIQUE (channel_id, message_id)
+      PRIMARY KEY (channel_id, message_id)
     );
   `);
-  await pool.query(`ALTER TABLE messages ALTER COLUMN message_id TYPE BIGINT;`).catch(() => {});
-  await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS date TIMESTAMPTZ NOT NULL DEFAULT NOW();`).catch(() => {});
-  await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS content JSONB;`).catch(() => {});
 }
 
 export async function upsertChannel(id: string, title: string, username?: string) {
@@ -40,14 +42,42 @@ export async function upsertChannel(id: string, title: string, username?: string
 
 export async function saveMessage(channelId: string, messageId: number, raw: Record<string, unknown>): Promise<boolean> {
   const msgDate = typeof raw.date === "number" ? new Date((raw.date as number) * 1000) : new Date();
-  const STRIP = new Set(["id", "chat_id", "date", "content"]);
-  const content = raw.content ?? null;
+  const STRIP = new Set(["id", "chat_id", "date", "edit_date", "effect_id", "is_pinned", "sender_id", "reply_to", "content"]);
+  const rawContent = (raw.content ?? null) as Record<string, unknown> | null;
+  const CONTENT_STRIP = new Set(["text", "caption", "photo", "video"]);
+  const contentText = rawContent?.text ?? rawContent?.caption ?? null;
+  const contentPhoto = rawContent?.photo ?? null;
+  const contentVideo = rawContent?.video ?? null;
+  const content = rawContent
+    ? Object.fromEntries(Object.entries(rawContent).filter(([k]) => !CONTENT_STRIP.has(k)))
+    : null;
+  const editDate = typeof raw.edit_date === "number" && raw.edit_date > 0 ? new Date((raw.edit_date as number) * 1000) : null;
+  const effectId = raw.effect_id != null ? String(raw.effect_id) : null;
+  const isPinned = raw.is_pinned === true;
+  const senderId = raw.sender_id ?? null;
+  const replyTo = raw.reply_to ?? null;
   const payload = Object.fromEntries(Object.entries(raw).filter(([k]) => !STRIP.has(k)));
-  const uuid = uuidv5(JSON.stringify(payload), NAMESPACE);
   const result = await pool.query(
-    `INSERT INTO messages (id, channel_id, message_id, date, content, raw) VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (channel_id, message_id) DO NOTHING`,
-    [uuid, channelId, messageId, msgDate, content ? JSON.stringify(content) : null, JSON.stringify(payload)]
+    `INSERT INTO messages (channel_id, message_id, date, edit_date, effect_id, is_pinned, sender_id, reply_to, content, content_text, content_photo, content_video, raw)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     ON CONFLICT (channel_id, message_id) DO UPDATE SET
+       edit_date       = EXCLUDED.edit_date,
+       effect_id       = EXCLUDED.effect_id,
+       is_pinned       = EXCLUDED.is_pinned,
+       sender_id       = EXCLUDED.sender_id,
+       reply_to        = EXCLUDED.reply_to,
+       content         = EXCLUDED.content,
+       content_text    = EXCLUDED.content_text,
+       content_photo   = EXCLUDED.content_photo,
+       content_video   = EXCLUDED.content_video,
+       raw             = EXCLUDED.raw`,
+    [channelId, messageId, msgDate, editDate, effectId, isPinned,
+     senderId ? JSON.stringify(senderId) : null, replyTo ? JSON.stringify(replyTo) : null,
+     content ? JSON.stringify(content) : null,
+     contentText ? JSON.stringify(contentText) : null,
+     contentPhoto ? JSON.stringify(contentPhoto) : null,
+     contentVideo ? JSON.stringify(contentVideo) : null,
+     JSON.stringify(payload)]
   );
   return (result.rowCount ?? 0) > 0;
 }
