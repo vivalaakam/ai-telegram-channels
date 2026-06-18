@@ -3,6 +3,7 @@ dist/
 .env
 *.session
 .localstorage
-.localstorage-*
+.localstorage-shm
+.localstorage-wal
 .tdlib/
 .tdlib-files/
