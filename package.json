@@ -7,6 +7,8 @@
     "scrapper": "pnpm -F scrapper start",
     "scrapper-dev": "pnpm -F scrapper dev",
     "migrate": "pnpm -F @ai-tg-channels/migrations migrate",
+    "jsonrpc": "pnpm -F @ai-tg-channels/jsonrpc start",
+    "jsonrpc-dev": "pnpm -F @ai-tg-channels/jsonrpc dev",
     "lint": "eslint 'packages/*/src/**/*.ts'",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
