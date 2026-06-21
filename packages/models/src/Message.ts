@@ -22,6 +22,7 @@ export class Message extends Model<InferAttributes<Message>, InferCreationAttrib
   declare contentTextText: string | null;
   declare contentTextEntities: Record<string, unknown> | null;
   declare raw: Record<string, unknown>;
+  declare isChecked: boolean | null;
   declare createdAt: CreationOptional<Date>;
 }
 
@@ -113,6 +114,11 @@ export function initMessage(sequelize: Sequelize): typeof Message {
       raw: {
         type: DataTypes.JSONB,
         allowNull: false,
+      },
+      isChecked: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: null,
       },
       createdAt: {
         type: DataTypes.DATE,

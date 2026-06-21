@@ -6,6 +6,8 @@
   "scripts": {
     "scrapper": "pnpm -F scrapper start",
     "scrapper-dev": "pnpm -F scrapper dev",
+    "parse": "pnpm -F @ai-tg-channels/feed start",
+    "parse-dev": "pnpm -F @ai-tg-channels/feed dev",
     "migrate": "pnpm -F @ai-tg-channels/migrations migrate",
     "jsonrpc": "pnpm -F @ai-tg-channels/jsonrpc start",
     "jsonrpc-dev": "pnpm -F @ai-tg-channels/jsonrpc dev",
