@@ -7,6 +7,7 @@
     "start": "node --localstorage-file=.localstorage --import tsx/esm src/main.ts",
     "dev": "node --watch --localstorage-file=.localstorage --import tsx/esm src/main.ts",
     "install-types": "tdl-install-types prebuilt-tdlib",
+    "migrate": "node --import tsx/esm src/migrations/migrator.ts",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx/esm --test 'tests/**/*.test.ts'"
@@ -15,13 +16,14 @@
     "dotenv": "^16.4.5",
     "pg": "^8.12.0",
     "prebuilt-tdlib": "latest",
+    "sequelize": "^6.37.8",
     "tdl": "^8.1.0",
+    "umzug": "^3.8.3",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.0.0",
-    "@types/pg": "^8.11.6",
     "@types/uuid": "^10.0.0",
     "eslint": "^10.5.0",
     "tsx": "^4.16.0",
