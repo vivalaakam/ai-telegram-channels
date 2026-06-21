@@ -4,7 +4,8 @@ import { config } from 'dotenv';
 import { resolve } from 'node:path';
 import { initModels } from '@ai-tg-channels/models';
 import { createMigrator } from '@ai-tg-channels/migrations';
-import { openrpcSpec } from './openrpc.js';
+import { z } from 'zod';
+import { buildOpenrpcSpec } from './openrpc.js';
 import { explorerHtml } from './explorer.js';
 import * as dispatch from './dispatch.js';
 import { methods } from './methods.js';
@@ -32,14 +33,21 @@ await mcpServer.connect(mcpTransport);
 type Params = Record<string, unknown>;
 
 const methodMap = new Map(methods.map((m) => [m.name, m]));
+const openrpcSpec = buildOpenrpcSpec(PORT);
 
 async function handleJsonRpc(method: string, params: Params): Promise<unknown> {
   const def = methodMap.get(method);
   if (!def) throw dispatch.rpcError(-32601, 'Method not found');
-  for (const p of def.params) {
-    if (p.required && params[p.name] == null) throw dispatch.rpcError(-32602, `Missing required parameter: ${p.name}`);
+
+  // Validate params using Zod schemas from method definition
+  const schema = z.object(Object.fromEntries(def.params.map((p) => [p.name, p.zod])));
+  const parsed = schema.safeParse(params);
+  if (!parsed.success) {
+    const errors = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+    throw dispatch.rpcError(-32602, `Invalid params: ${errors}`);
   }
-  return def.handler(params);
+
+  return def.handler(parsed.data);
 }
 
 async function handleRpc(body: unknown): Promise<unknown> {
@@ -110,7 +118,7 @@ const server = createServer(async (req: IncomingMessage, res: ServerResponse) =>
     }
   }
 
-  // OpenRPC spec
+  // OpenRPC spec (dynamic — reflects actual port)
   if (req.method === 'GET' && url.pathname === '/openrpc.json') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(openrpcSpec, null, 2));
