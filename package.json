@@ -4,35 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --localstorage-file=.localstorage --import tsx/esm src/main.ts",
-    "dev": "node --watch --localstorage-file=.localstorage --import tsx/esm src/main.ts",
-    "install-types": "tdl-install-types prebuilt-tdlib",
-    "migrate": "node --import tsx/esm src/migrations/migrator.ts",
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit",
-    "test": "node --import tsx/esm --test 'tests/**/*.test.ts'"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.5",
-    "pg": "^8.12.0",
-    "prebuilt-tdlib": "latest",
-    "sequelize": "^6.37.8",
-    "tdl": "^8.1.0",
-    "umzug": "^3.8.3",
-    "uuid": "^10.0.0"
+    "scrapper": "pnpm -F scrapper start",
+    "scrapper-dev": "pnpm -F scrapper dev",
+    "migrate": "pnpm -F @ai-tg-channels/migrations migrate",
+    "lint": "eslint 'packages/*/src/**/*.ts'",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^22.0.0",
-    "@types/uuid": "^10.0.0",
     "eslint": "^10.5.0",
-    "tsx": "^4.16.0",
-    "typescript": "^5.5.3",
     "typescript-eslint": "^8.61.1"
-  },
-  "allowScripts": {
-    "esbuild@0.28.1": true,
-    "fsevents@2.3.3": true,
-    "tdl@8.1.0": true
   }
 }
