@@ -1,7 +1,10 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve } from 'node:path';
 import { Sequelize } from 'sequelize';
-import { initModels, Channel, Message } from './models/index.js';
-import { createMigrator } from './migrations/migrator.js';
+import { initModels, Channel, Message } from '@ai-tg-channels/models';
+import { createMigrator } from '@ai-tg-channels/migrations';
+
+config({ path: resolve(import.meta.dirname, '../../../.env') });
 
 export const sequelize = new Sequelize(process.env.DATABASE_URL!, {
   dialect: 'postgres',

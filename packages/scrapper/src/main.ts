@@ -1,4 +1,4 @@
-import "dotenv/config";
+import { resolve } from "node:path";
 import readline from "readline";
 import { configure, createClient } from "tdl";
 import { getTdjson } from "prebuilt-tdlib";
@@ -9,8 +9,8 @@ configure({ tdjson: getTdjson() });
 const client = createClient({
   apiId: Number(process.env.TG_API_ID),
   apiHash: process.env.TG_API_HASH!,
-  databaseDirectory: ".tdlib",
-  filesDirectory: ".tdlib-files",
+  databaseDirectory: resolve(import.meta.dirname, "../../../.tdlib"),
+  filesDirectory: resolve(import.meta.dirname, "../../../.tdlib-files"),
 });
 
 function readLine(prompt: string): Promise<string> {
