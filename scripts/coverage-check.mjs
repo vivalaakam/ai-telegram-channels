@@ -34,9 +34,10 @@ function run() {
       });
 
       // Parse the coverage table from Node.js test runner output
-      // Format: file | line % | branch % | funcs % | uncovered lines
+      // Lines are prefixed with "ℹ " locally and "# " in CI
+      const stripPrefix = (l) => l.replace(/^[#ℹ]\s*/, '');
       const lines = output.split('\n');
-      const allFilesLine = lines.find((l) => l.trim().startsWith('all files'));
+      const allFilesLine = lines.find((l) => stripPrefix(l).trim().startsWith('all files'));
 
       if (!allFilesLine) {
         console.error(`  ⚠ Could not parse coverage for ${pkg}`);
@@ -45,8 +46,9 @@ function run() {
         continue;
       }
 
-      // Extract line coverage percentage
-      const match = allFilesLine.match(/all files\s*\|\s*([\d.]+)%/);
+      // Extract line coverage percentage (Node.js outputs bare numbers, no "%" suffix)
+      const cleaned = stripPrefix(allFilesLine);
+      const match = cleaned.match(/all files\s*\|\s*([\d.]+)/);
       if (!match) {
         console.error(`  ⚠ Could not parse line coverage from: ${allFilesLine}`);
         failed = true;
