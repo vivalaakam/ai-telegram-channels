@@ -1,11 +1,11 @@
-import { initDb, pgPool } from './db.js';
+import { initDb, sequelize } from './db.js';
 import { processMessages } from './processor.js';
 
 async function main() {
   console.log('[feed] Starting feed processor...');
   await initDb();
   await processMessages();
-  await pgPool.end();
+  await sequelize.close();
   console.log('[feed] Done.');
 }
 
