@@ -10,7 +10,8 @@
     "install-types": "tdl-install-types prebuilt-tdlib",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx/esm --test 'tests/**/*.test.ts'"
+    "test": "node --import tsx/esm --test 'tests/**/*.test.ts'",
+    "test:coverage": "node --import tsx/esm --test --experimental-test-coverage 'tests/**/*.test.ts'"
   },
   "dependencies": {
     "@ai-tg-channels/migrations": "workspace:*",
