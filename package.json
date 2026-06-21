@@ -10,8 +10,11 @@
     "jsonrpc": "pnpm -F @ai-tg-channels/jsonrpc start",
     "jsonrpc-dev": "pnpm -F @ai-tg-channels/jsonrpc dev",
     "lint": "eslint 'packages/*/src/**/*.ts'",
+    "lint:all": "eslint 'packages/*/src/**/*.ts' 'packages/*/tests/**/*.ts'",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test:coverage",
+    "test:coverage:check": "node scripts/coverage-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
