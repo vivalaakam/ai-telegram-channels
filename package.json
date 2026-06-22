@@ -9,6 +9,7 @@
     "parse": "pnpm -F @ai-tg-channels/feed start",
     "parse-dev": "pnpm -F @ai-tg-channels/feed dev",
     "migrate": "pnpm -F @ai-tg-channels/migrations migrate",
+    "migrate:create": "pnpm -F @ai-tg-channels/migrations migrate:create",
     "jsonrpc": "pnpm -F @ai-tg-channels/jsonrpc start",
     "jsonrpc-dev": "pnpm -F @ai-tg-channels/jsonrpc dev",
     "format": "prettier --write 'packages/*/src/**/*.ts' 'packages/*/tests/**/*.ts'",

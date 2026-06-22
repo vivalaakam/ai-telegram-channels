@@ -10,10 +10,12 @@ config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../../../.env')
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const migrationsDir = resolve(__dirname, 'migrations');
+
 export function createMigrator(sequelize: Sequelize) {
     return new Umzug({
         migrations: {
-            glob: ['migrations/*.ts', { cwd: __dirname }],
+            glob: ['*.ts', { cwd: migrationsDir }],
             resolve(params) {
                 const getModule = () => import(pathToFileURL(params.path!).toString());
                 return {
@@ -27,6 +29,15 @@ export function createMigrator(sequelize: Sequelize) {
         context: sequelize.getQueryInterface(),
         storage: new SequelizeStorage({ sequelize }),
         logger: console,
+        create: {
+            folder: migrationsDir,
+            template: (filepath) => [
+                [
+                    filepath,
+                    `import type { MigrationContext } from '../migrator.js';\n\nexport async function up({ context: queryInterface }: MigrationContext) {\n}\n\nexport async function down({ context: queryInterface }: MigrationContext) {\n}\n`,
+                ],
+            ],
+        },
     });
 }
 

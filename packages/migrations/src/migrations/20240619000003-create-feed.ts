@@ -1,4 +1,4 @@
-import type { MigrationContext } from './migrator.js';
+import type { MigrationContext } from '../migrator.js';
 
 export async function up({ context: queryInterface }: MigrationContext) {
     const sequelize = queryInterface.sequelize;
