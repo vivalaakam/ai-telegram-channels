@@ -14,7 +14,6 @@
     "@ai-tg-channels/migrations": "workspace:*",
     "@ai-tg-channels/models": "workspace:*",
     "dotenv": "^16.4.5",
-    "pg": "^8.12.0",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {

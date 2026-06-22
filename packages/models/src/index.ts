@@ -5,37 +5,37 @@ import { Feed, initFeed } from './Feed.js';
 import type { SimilarFeedItem } from './Feed.js';
 
 export function initDb(databaseUrl: string) {
-  const sequelize = new Sequelize(databaseUrl, {
-    dialect: 'postgres',
-    logging: false,
-  });
+    const sequelize = new Sequelize(databaseUrl, {
+        dialect: 'postgres',
+        logging: false,
+    });
 
-  initModels(sequelize);
-  return sequelize;
+    initModels(sequelize);
+    return sequelize;
 }
 
 export function initModels(sequelize: Sequelize) {
-  initChannel(sequelize);
-  initMessage(sequelize);
-  initFeed(sequelize);
+    initChannel(sequelize);
+    initMessage(sequelize);
+    initFeed(sequelize);
 
-  Channel.hasMany(Message, {
-    foreignKey: 'channelId',
-    as: 'messages',
-  });
-  Message.belongsTo(Channel, {
-    foreignKey: 'channelId',
-    as: 'channel',
-  });
+    Channel.hasMany(Message, {
+        foreignKey: 'channelId',
+        as: 'messages',
+    });
+    Message.belongsTo(Channel, {
+        foreignKey: 'channelId',
+        as: 'channel',
+    });
 
-  Channel.hasMany(Feed, {
-    foreignKey: 'channelId',
-    as: 'feedItems',
-  });
-  Feed.belongsTo(Channel, {
-    foreignKey: 'channelId',
-    as: 'channel',
-  });
+    Channel.hasMany(Feed, {
+        foreignKey: 'channelId',
+        as: 'feedItems',
+    });
+    Feed.belongsTo(Channel, {
+        foreignKey: 'channelId',
+        as: 'channel',
+    });
 }
 
 export { Channel, Message, Feed };
