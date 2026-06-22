@@ -1,6 +1,3 @@
-const BASE_URL = process.env.OPENAI_BASE_URL!;
-const LLM_MODEL = process.env.TEXT_MODEL!;
-
 export interface DeduplicationResult {
     sameNews: boolean;
     mergedText: string | null;
@@ -23,11 +20,11 @@ Respond with JSON: {"same_news": boolean, "merged_text": string | null}
 If same_news is true, merged_text must contain the best combined version.
 If same_news is false, merged_text must be null.`;
 
-    const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
+    const response = await fetch(`${process.env.OPENAI_BASE_URL}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: LLM_MODEL,
+            model: process.env.TEXT_MODEL,
             messages: [
                 { role: 'system', content: SYSTEM_PROMPT },
                 { role: 'user', content: userMessage },
