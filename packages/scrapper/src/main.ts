@@ -2,7 +2,12 @@ import { resolve } from 'node:path';
 import readline from 'readline';
 import { configure, createClient } from 'tdl';
 import { getTdjson } from 'prebuilt-tdlib';
-import { initDb, upsertChannel, saveMessage } from './db.js';
+import { saveMessage, upsertChannel } from './db.js';
+import { config } from 'dotenv';
+import { runMigrations } from '@ai-tg-channels/migrations';
+import { initDb } from '@ai-tg-channels/models';
+
+config({ path: resolve(import.meta.dirname, '../../../.env') });
 
 configure({ tdjson: getTdjson() });
 
@@ -98,7 +103,8 @@ async function syncUnread() {
 }
 
 async function main() {
-    await initDb();
+    const sequelize = initDb(process.env.DATABASE_URL!);
+    await runMigrations(sequelize);
     console.log('DB ready');
 
     await client.login({
