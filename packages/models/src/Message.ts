@@ -28,9 +28,7 @@ export class Message extends Model<InferAttributes<Message>, InferCreationAttrib
     static async getUnchecked(): Promise<Message | null> {
         return Message.findOne({
             where: {
-                contentTextText: {
-                    [Op.ne]: '',
-                },
+                contentTextText: { [Op.not]: null },
                 isChecked: { [Op.is]: null },
             },
             order: [['date', 'ASC']],

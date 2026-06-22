@@ -45,6 +45,7 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
         text: string;
         firstSeenAt: Date;
         channelId: string;
+        messageId: number;
         embedding: number[];
     }): Promise<string> {
         const vectorStr = `[${params.embedding.join(',')}]`;
@@ -68,7 +69,21 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
             throw new Error('Failed to insert feed item');
         }
 
-        return rows[0]!.id;
+        const feedId = rows[0]!.id;
+        await Feed.addMessage(feedId, params.channelId, params.messageId);
+        return feedId;
+    }
+
+    static async addMessage(feedId: string, channelId: string, messageId: number): Promise<void> {
+        await Feed.sequelize?.query(
+            `INSERT INTO feed_messages (feed_id, channel_id, message_id, created_at)
+             VALUES (:feedId, :channelId, :messageId, NOW())
+             ON CONFLICT DO NOTHING`,
+            {
+                replacements: { feedId, channelId, messageId },
+                type: QueryTypes.INSERT,
+            },
+        );
     }
 
     static async updateText(id: string, text: string) {
