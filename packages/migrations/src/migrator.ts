@@ -6,7 +6,7 @@ import { Sequelize } from 'sequelize';
 import { initModels } from '@ai-tg-channels/models';
 import { Umzug, SequelizeStorage } from 'umzug';
 
-config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../../.env') });
+config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../../../.env') });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

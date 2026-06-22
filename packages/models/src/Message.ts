@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Op, Sequelize } from 'sequelize';
+import {CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Op, Sequelize} from 'sequelize';
 
 export class Message extends Model<InferAttributes<Message>, InferCreationAttributes<Message>> {
     declare channelId: string;
@@ -25,18 +25,20 @@ export class Message extends Model<InferAttributes<Message>, InferCreationAttrib
     declare isChecked: boolean | null;
     declare createdAt: CreationOptional<Date>;
 
-    static async getUnchecked(): Promise<Message[]> {
-        return Message.findAll({
+    static async getUnchecked(): Promise<Message | null> {
+        return Message.findOne({
             where: {
-                contentTextText: { [Op.ne]: null },
-                isChecked: { [Op.is]: null },
+                contentTextText: {
+                    [Op.ne]: ''
+                },
+                isChecked: {[Op.is]: null},
             },
             order: [['date', 'ASC']],
         });
     }
 
     async markChecked() {
-        await this.update({ isChecked: true });
+        await this.update({isChecked: true});
     }
 }
 

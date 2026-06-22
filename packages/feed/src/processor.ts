@@ -1,14 +1,25 @@
-import { getEmbedding } from './embeddings.js';
-import { checkDuplication } from './llm.js';
-import { Feed, Message } from '@ai-tg-channels/models';
+import {getEmbedding} from './embeddings.js';
+import {checkDuplication} from './llm.js';
+import {Feed, Message} from '@ai-tg-channels/models';
 
 const SIMILARITY_THRESHOLD = 0.85;
 
 export async function processMessages(): Promise<void> {
-    const messages = await Message.getUnchecked();
-    console.log(`[feed] Found ${messages.length} unchecked messages`);
+    let msg;
 
-    for (const msg of messages) {
+    let messages = 0;
+
+    do {
+        await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait 3 seconds between checksecks
+        msg = await Message.getUnchecked();
+
+        if (!msg) {
+            console.log('[feed] No more unchecked messages, waiting...');
+            continue;
+        }
+
+        console.log(`[feed] Processing msg ${msg.messageId} from channel ${msg.channelId}...`);
+
         const text = msg.contentTextText!;
 
         try {
@@ -23,7 +34,7 @@ export async function processMessages(): Promise<void> {
                     embedding,
                 });
                 console.log(`[feed] Added new item from channel ${msg.channelId} msg ${msg.messageId}`);
-                return;
+                continue;
             }
 
             for (const row of similar) {
@@ -52,9 +63,14 @@ export async function processMessages(): Promise<void> {
         } catch (err) {
             console.error(`[feed] Error processing msg ${msg.messageId} from channel ${msg.channelId}:`, err);
         } finally {
+            console.log(`[feed] ${msg.messageId} Done.`);
             await msg.markChecked();
-        }
-    }
+            messages += 1;
+            msg = await Message.getUnchecked();
 
-    console.log(`[feed] Done processing ${messages.length} messages`);
+
+        }
+    } while (msg)
+
+    console.log(`[feed] Done processing ${messages} messages`);
 }
