@@ -1,7 +1,18 @@
 import { Sequelize } from 'sequelize';
 import { Channel, initChannel } from './Channel.js';
-import { Message, initMessage } from './Message.js';
+import { initMessage, Message } from './Message.js';
 import { Feed, initFeed } from './Feed.js';
+import type { SimilarFeedItem } from './Feed.js';
+
+export function initDb(databaseUrl: string) {
+  const sequelize = new Sequelize(databaseUrl, {
+    dialect: 'postgres',
+    logging: false,
+  });
+
+  initModels(sequelize);
+  return sequelize;
+}
 
 export function initModels(sequelize: Sequelize) {
   initChannel(sequelize);
@@ -28,3 +39,4 @@ export function initModels(sequelize: Sequelize) {
 }
 
 export { Channel, Message, Feed };
+export type { SimilarFeedItem };
