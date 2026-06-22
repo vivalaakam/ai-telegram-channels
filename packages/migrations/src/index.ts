@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import { createMigrator } from './migrator.js';
 
 export { createMigrator, type MigrationContext } from './migrator.js';
 
