@@ -65,7 +65,11 @@ async function handleRpc(body: unknown): Promise<unknown> {
     if (e.code && typeof e.code === 'number') {
       return { jsonrpc: '2.0', error: e, id: id ?? null };
     }
-    return { jsonrpc: '2.0', error: { code: -32603, message: 'Internal error', data: String(e.message ?? e) }, id: id ?? null };
+    return {
+      jsonrpc: '2.0',
+      error: { code: -32603, message: 'Internal error', data: String(e.message ?? e) },
+      id: id ?? null,
+    };
   }
 }
 

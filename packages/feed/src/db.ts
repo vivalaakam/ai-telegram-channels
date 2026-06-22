@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'node:path';
-import { Sequelize, Op, QueryTypes } from 'sequelize';
-import { initModels, Message, Feed } from '@ai-tg-channels/models';
+import { Op, QueryTypes, Sequelize } from 'sequelize';
+import { Feed, Message, initModels } from '@ai-tg-channels/models';
 import { createMigrator } from '@ai-tg-channels/migrations';
 
 config({ path: resolve(import.meta.dirname, '../../../.env') });

@@ -26,11 +26,21 @@ export async function upsertChannel(id: string, title: string, username?: string
   });
 }
 
-export async function saveMessage(channelId: string, messageId: number, raw: Record<string, unknown>): Promise<boolean> {
+export async function saveMessage(
+  channelId: string,
+  messageId: number,
+  raw: Record<string, unknown>,
+): Promise<boolean> {
   const {
     // id and chat_id are already stored as message_id/channel_id columns
-    id: _omitId, chat_id: _omitChatId,
-    date, edit_date, effect_id, is_pinned, sender_id, reply_to,
+    id: _omitId,
+    chat_id: _omitChatId,
+    date,
+    edit_date,
+    effect_id,
+    is_pinned,
+    sender_id,
+    reply_to,
     content: rawContentField,
     ...payload
   } = raw;
@@ -39,9 +49,8 @@ export async function saveMessage(channelId: string, messageId: number, raw: Rec
   void _omitChatId;
 
   const msgDate = typeof date === 'number' ? new Date(date * 1000) : new Date();
-  const editDate = typeof edit_date === 'number' && (edit_date as number) > 0
-    ? new Date((edit_date as number) * 1000)
-    : null;
+  const editDate =
+    typeof edit_date === 'number' && (edit_date as number) > 0 ? new Date((edit_date as number) * 1000) : null;
   const effectId = effect_id != null ? String(effect_id) : null;
   const isPinned = is_pinned === true;
 
@@ -92,7 +101,9 @@ export async function saveMessage(channelId: string, messageId: number, raw: Rec
     contentVideoStoryboards: contentVideoStoryboards ? (contentVideoStoryboards as Record<string, unknown>) : null,
     contentAlternativeVideos: contentAlternativeVideos ? (contentAlternativeVideos as Record<string, unknown>) : null,
     contentAnimation: contentAnimation ? (contentAnimation as Record<string, unknown>) : null,
-    contentLinkPreviewOptions: contentLinkPreviewOptions ? (contentLinkPreviewOptions as Record<string, unknown>) : null,
+    contentLinkPreviewOptions: contentLinkPreviewOptions
+      ? (contentLinkPreviewOptions as Record<string, unknown>)
+      : null,
     contentLinkPreview: contentLinkPreview ? (contentLinkPreview as Record<string, unknown>) : null,
     contentTextText: (contentTextText as string) ?? null,
     contentTextEntities: contentTextEntities ? (contentTextEntities as Record<string, unknown>) : null,

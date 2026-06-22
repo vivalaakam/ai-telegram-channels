@@ -107,6 +107,7 @@ export const methods: MethodDef[] = [
         },
       },
     },
-    handler: (p) => dispatch.getMessages(p.channelId as string, p.limit as number | undefined, p.offset as number | undefined),
+    handler: (p) =>
+      dispatch.getMessages(p.channelId as string, p.limit as number | undefined, p.offset as number | undefined),
   },
 ];

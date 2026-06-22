@@ -48,6 +48,9 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Format check
+        run: pnpm run format:check
+
       - name: Test with coverage
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test

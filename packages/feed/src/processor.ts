@@ -37,7 +37,9 @@ export async function processMessages(): Promise<void> {
             await updateFeedItemText(similar.id, result.mergedText);
             console.log(`[feed] Updated existing item ${similar.id} with merged text`);
           } else {
-            console.log(`[feed] Duplicate detected, skipping msg ${msg.messageId} (similarity ${similar.similarity.toFixed(3)})`);
+            console.log(
+              `[feed] Duplicate detected, skipping msg ${msg.messageId} (similarity ${similar.similarity.toFixed(3)})`,
+            );
           }
         } else {
           await insertFeedItem({
