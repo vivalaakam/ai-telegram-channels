@@ -62,9 +62,11 @@ export async function getFeedMessages(feedId: string) {
     return rows.map((r) => {
         const plain = r.get({ plain: true }) as typeof r & { channel?: { username: string | null } };
         const username = plain.channel?.username;
+        // ponytail: TDLib encodes channel message IDs as (url_id << 20); shift back to get the URL id
+        const urlMsgId = Number(BigInt(r.messageId) >> 20n);
         const tgLink = username
-            ? `https://t.me/${username}/${r.messageId}`
-            : `https://t.me/c/${String(r.channelId).replace(/^-100/, '')}/${r.messageId}`;
+            ? `https://t.me/${username}/${urlMsgId}`
+            : `https://t.me/c/${String(r.channelId).replace(/^-100/, '')}/${urlMsgId}`;
         return { channelId: r.channelId, messageId: r.messageId, tgLink };
     });
 }
