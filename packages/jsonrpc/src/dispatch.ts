@@ -49,36 +49,36 @@ export async function setConfig(slug: string, value: string) {
 
 // --- prompts ---
 
-export async function listPrompts() {
-    const rows = await Prompt.findAll({ where: { isCurrent: true }, order: [['slug', 'ASC']] });
+export async function listPrompts(tags?: string[]) {
+    if (tags?.length) return (await Prompt.findByTags(tags)).map((r) => r.get({ plain: true }));
+    const rows = await Prompt.findAll({ order: [['createdAt', 'DESC']] });
     return rows.map((r) => r.get({ plain: true }));
 }
 
-export async function getPrompt(slug: string) {
-    const row = await Prompt.getCurrent(slug);
+export async function getPrompt(id: string) {
+    const row = await Prompt.findByPk(id);
     if (!row) throw rpcError(-32001, 'Prompt not found');
     return row.get({ plain: true });
 }
 
-export async function createPrompt(slug: string, content: string) {
-    const existing = await Prompt.getCurrent(slug);
-    if (existing) throw rpcError(-32002, 'Prompt already exists, use prompts.update');
-    const row = await Prompt.insertNew(slug, content);
+export async function createPrompt(content: string, tags: string[]) {
+    const row = await Prompt.insertNew(content, tags);
     return row.get({ plain: true });
 }
 
-export async function updatePrompt(slug: string, content: string) {
-    const row = await Prompt.nextVersion(slug, content);
+export async function updatePrompt(id: string, content: string, tags: string[]) {
+    const row = await Prompt.createVersion(id, content, tags);
     return row.get({ plain: true });
 }
 
-export async function getPromptHistory(slug: string) {
-    const rows = await Prompt.history(slug);
+export async function getPromptHistory(id: string) {
+    await getPrompt(id); // ensure exists
+    const rows = await Prompt.getHistory(id);
     return rows.map((r) => r.get({ plain: true }));
 }
 
-export async function renderPrompt(slug: string, vars: Record<string, string>) {
-    const row = await Prompt.getCurrent(slug);
+export async function renderPrompt(id: string, vars: Record<string, string>) {
+    const row = await Prompt.findByPk(id);
     if (!row) throw rpcError(-32001, 'Prompt not found');
     return { rendered: renderTemplate(row.content, vars) };
 }

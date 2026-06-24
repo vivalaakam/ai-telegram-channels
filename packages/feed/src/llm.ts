@@ -1,4 +1,4 @@
-import { Prompt, renderTemplate } from '@ai-tg-channels/models';
+import { AppConfig, Prompt, renderTemplate } from '@ai-tg-channels/models';
 
 export interface DeduplicationResult {
     sameNews: boolean;
@@ -12,7 +12,7 @@ export interface NormalizeResult {
     postType: PostType;
 }
 
-// ponytail: fallbacks used when DB prompt not seeded yet
+// ponytail: fallbacks used when config/prompt not seeded yet
 const FALLBACK_NORMALIZE = `You are a content normalizer for Telegram posts. Given a post text:
 1. Rewrite it in a neutral, factual tone — remove excessive emotions, hype, and emoji.
 2. Classify it as one of: "ad" (advertisement/promotion), "news" (news/announcement), "post" (opinion/discussion/other), "meme" (humor/meme).
@@ -25,8 +25,10 @@ const FALLBACK_DEDUP = `You are a news deduplication assistant. Given two news t
 
 Respond ONLY with valid JSON. No markdown, no explanation.`;
 
-async function getPromptContent(slug: string, fallback: string): Promise<string> {
-    const p = await Prompt.getCurrent(slug);
+async function getPromptContent(configSlug: string, fallback: string): Promise<string> {
+    const cfg = await AppConfig.findByPk(configSlug);
+    if (!cfg?.value) return fallback;
+    const p = await Prompt.findByPk(cfg.value);
     return p ? renderTemplate(p.content) : fallback;
 }
 
