@@ -1,5 +1,5 @@
 export async function getEmbedding(text: string): Promise<number[]> {
-    const response = await fetch(`${process.env.OPENAI_BASE_URL}/v1/embeddings`, {
+    const response = await fetch(`${process.env.EMBEDDED_BASE_URL}/v1/embeddings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: process.env.CHUNK_MODEL, input: text }),

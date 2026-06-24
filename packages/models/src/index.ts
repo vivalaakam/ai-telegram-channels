@@ -4,6 +4,8 @@ import { initMessage, Message } from './Message.js';
 import { Feed, initFeed } from './Feed.js';
 import type { SimilarFeedItem } from './Feed.js';
 import { FeedMessage, initFeedMessage } from './FeedMessage.js';
+import { AppConfig, initAppConfig } from './AppConfig.js';
+import { initPrompt, Prompt, renderTemplate } from './Prompt.js';
 
 export function initDb(databaseUrl: string) {
     const sequelize = new Sequelize(databaseUrl, {
@@ -21,6 +23,8 @@ export function initModels(sequelize: Sequelize) {
     initMessage(sequelize);
     initFeed(sequelize);
     initFeedMessage(sequelize);
+    initAppConfig(sequelize);
+    initPrompt(sequelize);
 
     Channel.hasMany(Message, {
         foreignKey: 'channelId',
@@ -50,5 +54,5 @@ export function initModels(sequelize: Sequelize) {
     });
 }
 
-export { Channel, Message, Feed, FeedMessage };
+export { Channel, Message, Feed, FeedMessage, AppConfig, Prompt, renderTemplate };
 export type { SimilarFeedItem };

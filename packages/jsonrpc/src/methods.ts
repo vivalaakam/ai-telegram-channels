@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import * as dispatch from './dispatch.js';
+import { configMethods } from './methods-config.js';
 
 export interface ParamDef {
     name: string;
@@ -17,6 +18,16 @@ export interface MethodDef {
     handler: (params: Record<string, unknown>) => Promise<unknown>;
 }
 
+const channelShape = {
+    type: 'object',
+    properties: {
+        id: { type: 'string' },
+        title: { type: 'string' },
+        username: { type: ['string', 'null'] },
+        createdAt: { type: 'string', format: 'date-time' },
+    },
+};
+
 export const methods: MethodDef[] = [
     {
         name: 'channels.list',
@@ -30,18 +41,7 @@ export const methods: MethodDef[] = [
                 jsonSchema: { type: 'integer', default: 100, description: 'Max channels to return' },
             },
         ],
-        resultSchema: {
-            type: 'array',
-            items: {
-                type: 'object',
-                properties: {
-                    id: { type: 'string' },
-                    title: { type: 'string' },
-                    username: { type: ['string', 'null'] },
-                    createdAt: { type: 'string', format: 'date-time' },
-                },
-            },
-        },
+        resultSchema: { type: 'array', items: channelShape },
         handler: (p) => dispatch.listChannels(p.limit as number | undefined),
     },
     {
@@ -56,15 +56,7 @@ export const methods: MethodDef[] = [
                 jsonSchema: { type: 'string', description: 'Channel ID' },
             },
         ],
-        resultSchema: {
-            type: 'object',
-            properties: {
-                id: { type: 'string' },
-                title: { type: 'string' },
-                username: { type: ['string', 'null'] },
-                createdAt: { type: 'string', format: 'date-time' },
-            },
-        },
+        resultSchema: channelShape,
         handler: (p) => dispatch.getChannel(p.id as string),
     },
     {
@@ -110,4 +102,5 @@ export const methods: MethodDef[] = [
         handler: (p) =>
             dispatch.getMessages(p.channelId as string, p.limit as number | undefined, p.offset as number | undefined),
     },
+    ...configMethods,
 ];
