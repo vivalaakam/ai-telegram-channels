@@ -1,4 +1,4 @@
-import { AppConfig, Channel, Message, Prompt, renderTemplate } from '@ai-tg-channels/models';
+import { AppConfig, Channel, Feed, Message, Prompt, renderTemplate } from '@ai-tg-channels/models';
 
 export function rpcError(code: number, message: string) {
     return { code, message };
@@ -27,6 +27,37 @@ export async function getMessages(channelId: string, limit?: number, offset?: nu
         attributes: ['channelId', 'messageId', 'date', 'editDate', 'contentTextText', 'isPinned'],
     });
     return messages.map((m) => m.get({ plain: true }));
+}
+
+// --- feed ---
+
+export async function listFeed(limit?: number, offset?: number, postType?: string, isViewed?: boolean) {
+    const where: Record<string, unknown> = {};
+    if (postType !== undefined) where.postType = postType;
+    if (isViewed !== undefined) where.isViewed = isViewed;
+    const rows = await Feed.findAll({
+        where,
+        order: [['firstSeenAt', 'DESC']],
+        limit: limit ?? 20,
+        offset: offset ?? 0,
+        attributes: ['id', 'text', 'isViewed', 'postType', 'firstSeenAt', 'channelId', 'createdAt'],
+    });
+    return rows.map((r) => r.get({ plain: true }));
+}
+
+export async function getFeed(id: string) {
+    const row = await Feed.findByPk(id, {
+        attributes: ['id', 'text', 'isViewed', 'postType', 'firstSeenAt', 'channelId', 'createdAt'],
+    });
+    if (!row) throw rpcError(-32001, 'Feed item not found');
+    return row.get({ plain: true });
+}
+
+export async function markFeedViewed(id: string) {
+    const row = await Feed.findByPk(id);
+    if (!row) throw rpcError(-32001, 'Feed item not found');
+    await row.update({ isViewed: true });
+    return { ok: true };
 }
 
 // --- config ---

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import * as dispatch from './dispatch.js';
 import { configMethods } from './methods-config.js';
+import { feedMethods } from './methods-feed.js';
 
 export interface ParamDef {
     name: string;
@@ -102,5 +103,6 @@ export const methods: MethodDef[] = [
         handler: (p) =>
             dispatch.getMessages(p.channelId as string, p.limit as number | undefined, p.offset as number | undefined),
     },
+    ...feedMethods,
     ...configMethods,
 ];
