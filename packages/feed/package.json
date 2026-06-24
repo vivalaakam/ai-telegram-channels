@@ -1,0 +1,24 @@
+{
+  "name": "@ai-tg-channels/feed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --import tsx/esm src/main.ts",
+    "dev": "node --watch --import tsx/esm src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx/esm --test 'tests/**/*.test.ts'",
+    "test:coverage": "node --import tsx/esm --test --experimental-test-coverage 'tests/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@ai-tg-channels/migrations": "workspace:*",
+    "@ai-tg-channels/models": "workspace:*",
+    "dotenv": "^16.4.5",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.3"
+  }
+}

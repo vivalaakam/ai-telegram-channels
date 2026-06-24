@@ -1,0 +1,147 @@
+import {
+    CreationOptional,
+    DataTypes,
+    InferAttributes,
+    InferCreationAttributes,
+    Model,
+    QueryTypes,
+    Sequelize,
+} from 'sequelize';
+
+export interface SimilarFeedItem {
+    id: string;
+    text: string;
+    similarity: number;
+}
+
+export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<Feed>> {
+    declare id: CreationOptional<string>;
+    declare text: string;
+    declare isViewed: CreationOptional<boolean>;
+    declare postType: CreationOptional<string | null>;
+    declare firstSeenAt: Date;
+    declare channelId: string;
+    declare createdAt: CreationOptional<Date>;
+    declare updatedAt: CreationOptional<Date>;
+
+    static async findSimilar(embedding: number[], threshold = 0.85) {
+        const vectorStr = `[${embedding.join(',')}]`;
+
+        const rows = await Feed.sequelize?.query<SimilarFeedItem>(
+            `SELECT id, text, 1 - (embedding <=> :embedding::vector) AS similarity
+             FROM ${Feed.tableName}
+             WHERE first_seen_at > NOW() - INTERVAL '48 hours'
+             ORDER BY embedding <=> :embedding::vector`,
+            { replacements: { embedding: vectorStr }, type: QueryTypes.SELECT },
+        );
+
+        if (!rows || rows.length === 0) {
+            return [];
+        }
+        return rows.filter((r) => r.similarity >= threshold);
+    }
+
+    static async insert(params: {
+        text: string;
+        postType: string | null;
+        firstSeenAt: Date;
+        channelId: string;
+        messageId: number;
+        embedding: number[];
+    }): Promise<string> {
+        const vectorStr = `[${params.embedding.join(',')}]`;
+
+        const rows = await Feed.sequelize?.query<{ id: string }>(
+            `INSERT INTO feed (text, is_viewed, post_type, first_seen_at, channel_id, embedding, created_at, updated_at)
+             VALUES (:text, false, :postType, :firstSeenAt, :channelId, :embedding::vector, NOW(), NOW())
+             RETURNING id`,
+            {
+                replacements: {
+                    text: params.text,
+                    postType: params.postType,
+                    firstSeenAt: params.firstSeenAt,
+                    channelId: params.channelId,
+                    embedding: vectorStr,
+                },
+                type: QueryTypes.SELECT,
+            },
+        );
+
+        if (!rows || !rows.length) {
+            throw new Error('Failed to insert feed item');
+        }
+
+        const feedId = rows[0]!.id;
+        await Feed.addMessage(feedId, params.channelId, params.messageId);
+        return feedId;
+    }
+
+    static async addMessage(feedId: string, channelId: string, messageId: number): Promise<void> {
+        await Feed.sequelize?.query(
+            `INSERT INTO feed_messages (feed_id, channel_id, message_id, created_at)
+             VALUES (:feedId, :channelId, :messageId, NOW())
+             ON CONFLICT DO NOTHING`,
+            {
+                replacements: { feedId, channelId, messageId },
+                type: QueryTypes.INSERT,
+            },
+        );
+    }
+
+    static async updateText(id: string, text: string, embedding: number[]): Promise<void> {
+        const vectorStr = `[${embedding.join(',')}]`;
+        await Feed.sequelize?.query(
+            `UPDATE feed SET text = :text, embedding = :embedding::vector, updated_at = NOW() WHERE id = :id`,
+            { replacements: { text, embedding: vectorStr, id }, type: QueryTypes.UPDATE },
+        );
+    }
+}
+
+export function initFeed(sequelize: Sequelize): typeof Feed {
+    Feed.init(
+        {
+            id: {
+                type: DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: DataTypes.UUIDV4,
+            },
+            text: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            isViewed: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
+            postType: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+                defaultValue: null,
+            },
+            firstSeenAt: {
+                type: DataTypes.DATE,
+                allowNull: false,
+            },
+            channelId: {
+                type: DataTypes.BIGINT,
+                allowNull: false,
+            },
+            createdAt: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+            updatedAt: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        },
+        {
+            sequelize,
+            tableName: 'feed',
+            timestamps: true,
+            underscored: true,
+        },
+    );
+    return Feed;
+}

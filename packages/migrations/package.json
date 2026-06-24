@@ -7,7 +7,10 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "migrate": "node --import tsx/esm src/migrator.ts",
+    "migrate": "node --import tsx/esm src/migrator.ts up",
+    "migrate:down": "node --import tsx/esm src/migrator.ts down",
+    "migrate:create": "node --import tsx/esm src/migrator.ts create",
+    "migrate:cli": "node --import tsx/esm src/migrator.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
