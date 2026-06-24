@@ -148,7 +148,9 @@ const server = createServer(async (req: IncomingMessage, res: ServerResponse) =>
             return;
         }
 
+        console.log('[rpc] →', JSON.stringify(parsed));
         const result = await handleRpc(parsed);
+        console.log('[rpc] ←', JSON.stringify(result));
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
         return;
