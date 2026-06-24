@@ -74,6 +74,31 @@ export const feedMethods: MethodDef[] = [
         handler: (p) => dispatch.getFeed(p.id as string),
     },
     {
+        name: 'feed.getMessages',
+        description: 'Get all source messages linked to a feed item, with Telegram links',
+        params: [
+            {
+                name: 'id',
+                required: true,
+                description: 'Feed item UUID',
+                zod: z.string().uuid(),
+                jsonSchema: { type: 'string', format: 'uuid', description: 'Feed item UUID' },
+            },
+        ],
+        resultSchema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    channelId: { type: 'string' },
+                    messageId: { type: 'integer' },
+                    tgLink: { type: 'string', format: 'uri' },
+                },
+            },
+        },
+        handler: (p) => dispatch.getFeedMessages(p.id as string),
+    },
+    {
         name: 'feed.markViewed',
         description: 'Mark a feed item as viewed',
         params: [

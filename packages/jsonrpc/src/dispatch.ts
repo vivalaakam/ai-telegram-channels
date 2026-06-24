@@ -1,4 +1,4 @@
-import { AppConfig, Channel, Feed, Message, Prompt, renderTemplate } from '@ai-tg-channels/models';
+import { AppConfig, Channel, Feed, FeedMessage, Message, Prompt, renderTemplate } from '@ai-tg-channels/models';
 
 export function rpcError(code: number, message: string) {
     return { code, message };
@@ -51,6 +51,22 @@ export async function getFeed(id: string) {
     });
     if (!row) throw rpcError(-32001, 'Feed item not found');
     return row.get({ plain: true });
+}
+
+export async function getFeedMessages(feedId: string) {
+    await getFeed(feedId); // ensure exists
+    const rows = await FeedMessage.findAll({
+        where: { feedId },
+        include: [{ model: Channel, as: 'channel', attributes: ['username'] }],
+    });
+    return rows.map((r) => {
+        const plain = r.get({ plain: true }) as typeof r & { channel?: { username: string | null } };
+        const username = plain.channel?.username;
+        const tgLink = username
+            ? `https://t.me/${username}/${r.messageId}`
+            : `https://t.me/c/${String(r.channelId).replace(/^-100/, '')}/${r.messageId}`;
+        return { channelId: r.channelId, messageId: r.messageId, tgLink };
+    });
 }
 
 export async function markFeedViewed(id: string) {
