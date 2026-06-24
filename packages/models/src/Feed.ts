@@ -30,8 +30,7 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
             `SELECT id, text, 1 - (embedding <=> :embedding::vector) AS similarity
              FROM ${Feed.tableName}
              WHERE first_seen_at > NOW() - INTERVAL '48 hours'
-             ORDER BY embedding <=> :embedding::vector
-             LIMIT 1`,
+             ORDER BY embedding <=> :embedding::vector`,
             { replacements: { embedding: vectorStr }, type: QueryTypes.SELECT },
         );
 

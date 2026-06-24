@@ -9,6 +9,7 @@ export function initDb(databaseUrl: string) {
     const sequelize = new Sequelize(databaseUrl, {
         dialect: 'postgres',
         logging: false,
+        // logging: console.log
     });
 
     initModels(sequelize);

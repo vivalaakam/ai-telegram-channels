@@ -1,6 +1,6 @@
-import { Feed, Message } from '@ai-tg-channels/models';
-import { getEmbedding } from './embeddings.js';
-import { checkDuplication } from './llm.js';
+import {Feed, Message} from '@ai-tg-channels/models';
+import {getEmbedding} from './embeddings.js';
+import {checkDuplication} from './llm.js';
 
 const SIMILARITY_THRESHOLD = 0.85;
 
@@ -11,6 +11,14 @@ export async function processMessages(): Promise<void> {
 
     while (msg) {
         const text = msg.contentTextText!;
+
+        if (!text.trim()) {
+            console.log(`[feed] msg ${msg.messageId} from channel ${msg.channelId} empty`)
+            await msg.markChecked();
+            msg = await Message.getUnchecked();
+            continue;
+        }
+
         console.log(`[feed] Processing msg ${msg.messageId} from channel ${msg.channelId}...`);
 
         try {
