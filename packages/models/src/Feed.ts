@@ -18,6 +18,7 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
     declare id: CreationOptional<string>;
     declare text: string;
     declare isViewed: CreationOptional<boolean>;
+    declare postType: CreationOptional<string | null>;
     declare firstSeenAt: Date;
     declare channelId: string;
     declare createdAt: CreationOptional<Date>;
@@ -42,6 +43,7 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
 
     static async insert(params: {
         text: string;
+        postType: string | null;
         firstSeenAt: Date;
         channelId: string;
         messageId: number;
@@ -50,12 +52,13 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
         const vectorStr = `[${params.embedding.join(',')}]`;
 
         const rows = await Feed.sequelize?.query<{ id: string }>(
-            `INSERT INTO feed (text, is_viewed, first_seen_at, channel_id, embedding, created_at, updated_at)
-             VALUES (:text, false, :firstSeenAt, :channelId, :embedding::vector, NOW(), NOW())
+            `INSERT INTO feed (text, is_viewed, post_type, first_seen_at, channel_id, embedding, created_at, updated_at)
+             VALUES (:text, false, :postType, :firstSeenAt, :channelId, :embedding::vector, NOW(), NOW())
              RETURNING id`,
             {
                 replacements: {
                     text: params.text,
+                    postType: params.postType,
                     firstSeenAt: params.firstSeenAt,
                     channelId: params.channelId,
                     embedding: vectorStr,
@@ -85,8 +88,12 @@ export class Feed extends Model<InferAttributes<Feed>, InferCreationAttributes<F
         );
     }
 
-    static async updateText(id: string, text: string) {
-        await Feed.update({ text }, { where: { id } });
+    static async updateText(id: string, text: string, embedding: number[]): Promise<void> {
+        const vectorStr = `[${embedding.join(',')}]`;
+        await Feed.sequelize?.query(
+            `UPDATE feed SET text = :text, embedding = :embedding::vector, updated_at = NOW() WHERE id = :id`,
+            { replacements: { text, embedding: vectorStr, id }, type: QueryTypes.UPDATE },
+        );
     }
 }
 
@@ -106,6 +113,11 @@ export function initFeed(sequelize: Sequelize): typeof Feed {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
                 defaultValue: false,
+            },
+            postType: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+                defaultValue: null,
             },
             firstSeenAt: {
                 type: DataTypes.DATE,

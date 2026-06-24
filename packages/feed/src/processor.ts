@@ -1,6 +1,6 @@
 import {Feed, Message} from '@ai-tg-channels/models';
 import {getEmbedding} from './embeddings.js';
-import {checkDuplication} from './llm.js';
+import {checkDuplication, normalizeAndClassify} from './llm.js';
 
 const SIMILARITY_THRESHOLD = 0.85;
 
@@ -26,21 +26,26 @@ export async function processMessages(): Promise<void> {
             const similar = await Feed.findSimilar(embedding, SIMILARITY_THRESHOLD);
 
             if (!similar.length) {
+                const { normalizedText, postType } = await normalizeAndClassify(text);
+                const embedding = await getEmbedding(normalizedText);
+
                 await Feed.insert({
-                    text,
+                    text: normalizedText,
+                    postType,
                     firstSeenAt: msg.date,
                     channelId: msg.channelId,
                     messageId: msg.messageId,
                     embedding,
                 });
-                console.log(`[feed] New item added from channel ${msg.channelId} msg ${msg.messageId}`);
+                console.log(`[feed] New item added from channel ${msg.channelId} msg ${msg.messageId} (${postType})`);
             } else {
                 for (const row of similar) {
                     const result = await checkDuplication(row.text, text);
 
                     if (result.sameNews) {
                         if (result.mergedText && result.mergedText !== row.text) {
-                            await Feed.updateText(row.id, result.mergedText);
+                            const mergedEmbedding = await getEmbedding(result.mergedText);
+                            await Feed.updateText(row.id, result.mergedText, mergedEmbedding);
                             console.log(`[feed] Updated item ${row.id} with merged text`);
                         } else {
                             console.log(
@@ -49,14 +54,17 @@ export async function processMessages(): Promise<void> {
                         }
                         await Feed.addMessage(row.id, msg.channelId, msg.messageId);
                     } else {
+                        const { normalizedText, postType } = await normalizeAndClassify(text);
+                        const normalizedEmbedding = await getEmbedding(normalizedText);
                         await Feed.insert({
-                            text,
+                            text: normalizedText,
+                            postType,
                             firstSeenAt: msg.date,
                             channelId: msg.channelId,
                             messageId: msg.messageId,
-                            embedding,
+                            embedding: normalizedEmbedding,
                         });
-                        console.log(`[feed] Different news despite vector similarity, added new item`);
+                        console.log(`[feed] Different news despite vector similarity, added new item (${postType})`);
                     }
                 }
             }
