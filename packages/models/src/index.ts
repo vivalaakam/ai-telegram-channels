@@ -52,6 +52,10 @@ export function initModels(sequelize: Sequelize) {
         foreignKey: 'feedId',
         as: 'feed',
     });
+    FeedMessage.belongsTo(Channel, {
+        foreignKey: 'channelId',
+        as: 'channel',
+    });
 }
 
 export { Channel, Message, Feed, FeedMessage, AppConfig, Prompt, renderTemplate };
