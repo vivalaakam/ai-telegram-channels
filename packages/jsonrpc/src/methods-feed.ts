@@ -48,6 +48,20 @@ export const feedMethods: MethodDef[] = [
                 zod: z.boolean().optional(),
                 jsonSchema: { type: 'boolean', description: 'Viewed status filter' },
             },
+            {
+                name: 'after',
+                required: false,
+                description: 'Return items with firstSeenAt after this ISO 8601 datetime',
+                zod: z.string().datetime().optional(),
+                jsonSchema: { type: 'string', format: 'date-time', description: 'Filter: firstSeenAt after' },
+            },
+            {
+                name: 'before',
+                required: false,
+                description: 'Return items with firstSeenAt before this ISO 8601 datetime',
+                zod: z.string().datetime().optional(),
+                jsonSchema: { type: 'string', format: 'date-time', description: 'Filter: firstSeenAt before' },
+            },
         ],
         resultSchema: { type: 'array', items: feedShape },
         handler: (p) =>
@@ -56,6 +70,8 @@ export const feedMethods: MethodDef[] = [
                 p.offset as number | undefined,
                 p.postType as string | undefined,
                 p.isViewed as boolean | undefined,
+                p.after ? new Date(p.after as string) : undefined,
+                p.before ? new Date(p.before as string) : undefined,
             ),
     },
     {

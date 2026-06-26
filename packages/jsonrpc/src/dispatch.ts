@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { AppConfig, Channel, Feed, FeedMessage, Message, Prompt, renderTemplate } from '@ai-tg-channels/models';
 
 export function rpcError(code: number, message: string) {
@@ -31,10 +32,23 @@ export async function getMessages(channelId: string, limit?: number, offset?: nu
 
 // --- feed ---
 
-export async function listFeed(limit?: number, offset?: number, postType?: string, isViewed?: boolean) {
+export async function listFeed(
+    limit?: number,
+    offset?: number,
+    postType?: string,
+    isViewed?: boolean,
+    after?: Date,
+    before?: Date,
+) {
     const where: Record<string, unknown> = {};
     if (postType !== undefined) where.postType = postType;
     if (isViewed !== undefined) where.isViewed = isViewed;
+    if (after || before) {
+        where.firstSeenAt = {
+            ...(after ? { [Op.gte]: after } : {}),
+            ...(before ? { [Op.lte]: before } : {}),
+        };
+    }
     const rows = await Feed.findAll({
         where,
         order: [['firstSeenAt', 'DESC']],
@@ -80,8 +94,15 @@ export async function markFeedViewed(id: string) {
 
 // --- config ---
 
-export async function listConfig() {
-    const rows = await AppConfig.findAll({ order: [['slug', 'ASC']] });
+export async function listConfig(after?: Date, before?: Date) {
+    const where: Record<string, unknown> = {};
+    if (after || before) {
+        where.updatedAt = {
+            ...(after ? { [Op.gte]: after } : {}),
+            ...(before ? { [Op.lte]: before } : {}),
+        };
+    }
+    const rows = await AppConfig.findAll({ where, order: [['slug', 'ASC']] });
     return rows.map((r) => r.get({ plain: true }));
 }
 
@@ -98,9 +119,16 @@ export async function setConfig(slug: string, value: string) {
 
 // --- prompts ---
 
-export async function listPrompts(tags?: string[]) {
-    if (tags?.length) return (await Prompt.findByTags(tags)).map((r) => r.get({ plain: true }));
-    const rows = await Prompt.findAll({ order: [['createdAt', 'DESC']] });
+export async function listPrompts(tags?: string[], after?: Date, before?: Date) {
+    const where: Record<string, unknown> = {};
+    if (tags?.length) where.tags = { [Op.overlap]: tags };
+    if (after || before) {
+        where.createdAt = {
+            ...(after ? { [Op.gte]: after } : {}),
+            ...(before ? { [Op.lte]: before } : {}),
+        };
+    }
+    const rows = await Prompt.findAll({ where, order: [['createdAt', 'DESC']] });
     return rows.map((r) => r.get({ plain: true }));
 }
 

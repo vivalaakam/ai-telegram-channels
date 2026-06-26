@@ -2,6 +2,7 @@ import { z } from 'zod';
 import * as dispatch from './dispatch.js';
 import { configMethods } from './methods-config.js';
 import { feedMethods } from './methods-feed.js';
+import { promptMethods } from './methods-prompts.js';
 
 export interface ParamDef {
     name: string;
@@ -105,4 +106,5 @@ export const methods: MethodDef[] = [
     },
     ...feedMethods,
     ...configMethods,
+    ...promptMethods,
 ];
