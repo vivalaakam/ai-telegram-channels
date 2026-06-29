@@ -1,4 +1,4 @@
-import { AppConfig, Prompt, renderTemplate } from '@ai-tg-channels/models';
+import {AppConfig, Prompt, renderTemplate} from '@ai-tg-channels/models';
 
 export interface DeduplicationResult {
     sameNews: boolean;
@@ -33,16 +33,37 @@ async function getPromptContent(configSlug: string, fallback: string): Promise<s
 }
 
 async function chatCompletion(systemPrompt: string, userMessage: string): Promise<string> {
-    const response = await fetch(`${process.env.TEXT_BASE_URL}/v1/chat/completions`, {
+    const cfg = await AppConfig.findByPk('llm_text_base_url');
+
+    if (!cfg?.value) {
+        throw new Error('LLM base URL not configured. Please set the "llm_text_base_url" config.');
+    }
+
+    const model = await AppConfig.findByPk('llm_text_model');
+    if (!model?.value) {
+        throw new Error('LLM model not configured. Please set the "llm_text_model" config.');
+    }
+
+    const bearer = await AppConfig.findByPk('llm_text_bearer');
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (bearer?.value) {
+        headers['Authorization'] = `Bearer ${bearer.value}`;
+    }
+
+    const response = await fetch(`${cfg.value}/v1/chat/completions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-            model: process.env.TEXT_MODEL,
+            model: model.value,
             messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userMessage },
+                {role: 'system', content: systemPrompt},
+                {role: 'user', content: userMessage},
             ],
-            temperature: 0.1,
+            think: false,
         }),
     });
 
@@ -62,7 +83,7 @@ export async function normalizeAndClassify(text: string): Promise<NormalizeResul
         `Post text:\n${text}\n\nRespond with JSON: {"normalized_text": string, "post_type": "ad"|"news"|"post"|"meme"}`,
     );
     const parsed = JSON.parse(content) as { normalized_text: string; post_type: PostType };
-    return { normalizedText: parsed.normalized_text, postType: parsed.post_type };
+    return {normalizedText: parsed.normalized_text, postType: parsed.post_type};
 }
 
 export async function checkDuplication(existingText: string, newText: string): Promise<DeduplicationResult> {
@@ -72,5 +93,5 @@ export async function checkDuplication(existingText: string, newText: string): P
         `Text 1 (existing):\n${existingText}\n\nText 2 (new):\n${newText}\n\nRespond with JSON: {"same_news": boolean, "merged_text": string | null}\nIf same_news is true, merged_text must contain the best combined version.\nIf same_news is false, merged_text must be null.`,
     );
     const parsed = JSON.parse(content) as { same_news: boolean; merged_text: string | null };
-    return { sameNews: parsed.same_news, mergedText: parsed.merged_text ?? null };
+    return {sameNews: parsed.same_news, mergedText: parsed.merged_text ?? null};
 }
